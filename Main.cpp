@@ -568,6 +568,7 @@ void bcuvw()
 //double ddr()
 
 
+
 void sweep()
 {
     bcuvw();
@@ -575,45 +576,241 @@ void sweep()
      * =================U_PHI==========================================================
      * ==============================================================================*/
     double duphidr[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
+    double duphidz[N_R][N_Z];
+    double druphidr[N_R][N_Z];
+    double ddruphiddr[N_R][N_Z];
+    double dduphiddz[N_R][N_Z];
+
+/*
+    for (int i=0; i<N_R; i++)
     {
-        for (int j=1; j<N_Z-1; j++)
+        for (int j=0; j<N_Z; j++)
         {
             duphidr[i][j]=ddr(u_phi_prev,i,j);//(u_phi_prev[i][j]-u_phi_prev[i-1][j])/dr;
-        }
-    }
-    double duphidz[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z; j++)
-        {
             duphidz[i][j]=ddz(u_phi_prev,i,j); //(u_phi_prev[i][j]-u_phi_prev[i-1][j])/dz;
+            druphidr[i][j]=(dr*(i+1)*u_phi_prev[i+1][j]-dr*(i-1)*u_phi_prev[i-1][j])/(2.0*dr*dr*i);
+
         }
     }
-    double dduphiddz[N_R][N_Z];
+
     for (int i=1; i<N_R-1; i++)
     {
         for (int j=1; j<N_Z-1; j++)
         {
             dduphiddz[i][j]=ddz(duphidz,i,j); //(duphidz[i][j]-duphidz[i-1][j])/dz;
-        }
-    }
-    double druphidr[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
-            druphidr[i][j]=(dr*(i+1)*u_phi_prev[i+1][j]-dr*(i-1)*u_phi_prev[i-1][j])/(2.0*dr*dr*i);
-        }
-    }
-    double ddruphiddr[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
             ddruphiddr[i][j]=ddr(druphidr, i, j); //(druphidr[i][j]-druphidr[i-1][j])/dr;
+
         }
     }
+*/
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            RHS[i][j]=-u_r_prev[i][j]*(u_phi_prev[i+1][j]-u_phi_prev[i-1][j])/(2.0*dr)
+                      -u_r_prev[i][j]*u_phi_prev[i][j]/(dr*i)
+                      -u_z_prev[i][j]*(u_phi_prev[i][j+1]-u_phi_prev[i][j-1])/(dz*2.0)
+                      +1/Re*((u_phi_prev[i+1][j]-2.0*u_phi_prev[i][j]+u_phi_prev[i-1][j])/(dr*dr)
+                            +(u_phi_prev[i][j+1]-2.0*u_phi_prev[i][j]+u_phi_prev[i][j-1])/(dz*dz));
+        }
+    }
+
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            u_phi_star[i][j]=RHS[i][j]*dt+u_phi_prev[i][j];
+            u_phi_prev[i][j]=u_phi_star[i][j];
+        }
+    }
+    /*===============================================================================
+  * =================U_R==========================================================
+  * ==============================================================================*/
+
+ /*   double durdz[N_R][N_Z];    //dur/dz
+    double durdr[N_R][N_Z];  //dur/dr
+    double drurdr[N_R][N_Z];  // d(r*ur)/dr
+    double ddruddr[N_R][N_Z];
+    double dduddz[N_R][N_Z];        //d^2ur/dz^2
+
+
+    for (int i=0; i<N_R; i++)
+    {
+        for (int j=0; j<N_Z; j++)
+        {
+            durdz[i][j]=ddz(u_r_prev, i, j); //(u_r_prev[i][j]-u_r_prev[i-1][j])/dz;
+            durdr[i][j]=ddr(u_r_prev, i,j); //(u_r_prev[i][j]-u_r_prev[i-1][j])/dr;
+            drurdr[i][j]=(dr*(i+1)*u_r_prev[i+1][j]-dr*(i-1)*u_r_prev[i-1][j])/(2.0*dr*dr*i);
+
+        }
+    }
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            dduddz[i][j]=ddz(durdz,i,j); //(durdz[i][j]-durdz[i-1][j])/dz;
+            ddruddr[i][j]=ddr(drurdr,i,j); //(drurdr[i][j]-drurdr[i-1][j])/dr;
+
+        }
+    }*/
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+           // RHS[i][j]=-u_r_prev[i][j]*durdr[i][j]+u_phi_prev[i][j]/(dr*i)-u_z_prev[i][j]*durdz[i][j]+1/Re*(ddruddr[i][j]+dduddz[i][j]);
+
+            RHS[i][j]=-u_r_prev[i][j]*(u_r_prev[i+1][j]-u_r_prev[i-1][j])/(2.0*dr)
+                      +u_phi_prev[i][j]*u_phi_prev[i][j]/(dr*i)
+                      -u_z_prev[i][j]*(u_r_prev[i][j+1]-u_r_prev[i][j-1])/(dz*2.0)
+                      +1/Re*((u_r_prev[i+1][j]-2.0*u_r_prev[i][j]+u_r_prev[i-1][j])/(dr*dr)
+                            +(u_r_prev[i][j+1]-2.0*u_r_prev[i][j]+u_r_prev[i][j-1])/(dz*dz));
+        }
+    }
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            u_r_star[i][j]=RHS[i][j]*dt+u_r_prev[i][j];
+            u_r_prev[i][j]=u_r_star[i][j];
+        }
+    }
+    /*===============================================================================
+     * =================U_Z==========================================================
+     * ==============================================================================*/
+
+    double duzdr[N_R][N_Z];  //dur/dr
+    double duzdz[N_R][N_Z];
+    double dduzddr[N_R][N_Z];
+    double dduzddz[N_R][N_Z];
+
+
+    for (int i=0; i<N_R; i++)
+    {
+        for (int j=0; j<N_Z; j++)
+        {
+            duzdr[i][j]=ddr(u_z_prev,i,j); //(u_z_prev[i][j]-u_z_prev[i-1][j])/dr;
+            duzdz[i][j]=ddz(u_z_prev,i,j); //(u_z_prev[i][j]-u_z_prev[i-1][j])/dz;
+
+        }
+    }
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            dduzddz[i][j]=ddz(duzdz,i,j); //(duzdz[i][j]-duzdz[i-1][j])/dz;
+
+            dduzddr[i][j]=(dr*(i+1)*duzdr[i+1][j]-dr*(i-1)*duzdr[i-1][j])/(2.0*dr);
+        }
+    }
+
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+      //      RHS[i][j]=-0.01-u_r_prev[i][j]*duzdr[i][j]-u_z_prev[i][j]*duzdz[i][j]+1/Re*(dduzddr[i][j]/(i*dr)+dduzddz[i][j]);
+
+            RHS[i][j]=-u_r_prev[i][j]*(u_z_prev[i+1][j]-u_z_prev[i-1][j])/(2.0*dr)
+
+                      -u_z_prev[i][j]*(u_z_prev[i][j+1]-u_z_prev[i][j-1])/(dz*2.0)
+                      +1/Re*((u_z_prev[i+1][j]-2.0*u_z_prev[i][j]+u_z_prev[i-1][j])/(dr*dr)
+                            +(u_z_prev[i][j+1]-2.0*u_z_prev[i][j]+u_z_prev[i][j-1])/(dz*dz));
+        }
+    }
+
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            u_z_star[i][j]=RHS[i][j]*dt+u_z_prev[i][j];
+            u_z_prev[i][j]=u_z_star[i][j];
+
+        }
+
+    }
+
+
+    get_div_prev();
+
+    get_div_0();
+
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            div_prev[i][j]=(u_r_prev[i+1][j]-u_r_prev[i-1][j])/(2.0*dr)+(u_z_prev[i][j+1]-u_z_prev[i][j-1])/(2.0*dz);//+ddz(p_prime,i,j);
+            div_0[i][j]=div_prev[i][j];
+        }
+    }
+
+    jacobi(p_prime,div_prev,100);
+
+
+
+
+
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            u_z_star[i][j]=u_z_prev[i][j]-ddz(p_prime,i,j);
+            u_r_star[i][j]=u_r_prev[i][j]-ddr(p_prime,i,j);
+
+            u_z_prime[i][j]=ddz(p_prime,i,j);
+            u_r_prime[i][j]=ddr(p_prime,i,j);
+
+            u_z_prev[i][j]=u_z_star[i][j];
+            u_r_prev[i][j]=u_r_star[i][j];
+        }
+    }
+
+  get_div_prev();
+
+
+/*  for (int i=1; i<N_R-1; i++)
+  {
+      for (int j=1; j<N_Z-1; j++)
+      {
+          div_prev[i][j]=(u_r_star[i+1][j]-u_r_star[i-1][j])/(2.0*dr)+(u_z_star[i][j+1]-u_z_star[i][j-1])/(2.0*dz);//+ddz(p_prime,i,j);
+        //  div_0[i][j]=div_prev[i][j];
+      }
+  }*/
+}
+
+
+void sweep_old()
+{
+    bcuvw();
+    /*===============================================================================
+     * =================U_PHI==========================================================
+     * ==============================================================================*/
+    double duphidr[N_R][N_Z];
+    double duphidz[N_R][N_Z];
+    double druphidr[N_R][N_Z];
+    double ddruphiddr[N_R][N_Z];
+    double dduphiddz[N_R][N_Z];
+
+
+    for (int i=0; i<N_R; i++)
+    {
+        for (int j=0; j<N_Z; j++)
+        {
+            duphidr[i][j]=ddr(u_phi_prev,i,j);//(u_phi_prev[i][j]-u_phi_prev[i-1][j])/dr;
+            duphidz[i][j]=ddz(u_phi_prev,i,j); //(u_phi_prev[i][j]-u_phi_prev[i-1][j])/dz;
+            druphidr[i][j]=(dr*(i+1)*u_phi_prev[i+1][j]-dr*(i-1)*u_phi_prev[i-1][j])/(2.0*dr*dr*i);
+
+        }
+    }
+
+    for (int i=1; i<N_R-1; i++)
+    {
+        for (int j=1; j<N_Z-1; j++)
+        {
+            dduphiddz[i][j]=ddz(duphidz,i,j); //(duphidz[i][j]-duphidz[i-1][j])/dz;
+            ddruphiddr[i][j]=ddr(druphidr, i, j); //(druphidr[i][j]-druphidr[i-1][j])/dr;
+
+        }
+    }
+
     for (int i=1; i<N_R-1; i++)
     {
         for (int j=1; j<N_Z-1; j++)
@@ -635,44 +832,29 @@ void sweep()
   * ==============================================================================*/
 
     double durdz[N_R][N_Z];    //dur/dz
-    for (int i=1; i<N_R-1; i++)
+    double durdr[N_R][N_Z];  //dur/dr
+    double drurdr[N_R][N_Z];  // d(r*ur)/dr
+    double ddruddr[N_R][N_Z];
+    double dduddz[N_R][N_Z];        //d^2ur/dz^2
+
+
+    for (int i=0; i<N_R; i++)
     {
-        for (int j=1; j<N_Z-1; j++)
+        for (int j=0; j<N_Z; j++)
         {
             durdz[i][j]=ddz(u_r_prev, i, j); //(u_r_prev[i][j]-u_r_prev[i-1][j])/dz;
+            durdr[i][j]=ddr(u_r_prev, i,j); //(u_r_prev[i][j]-u_r_prev[i-1][j])/dr;
+            drurdr[i][j]=(dr*(i+1)*u_r_prev[i+1][j]-dr*(i-1)*u_r_prev[i-1][j])/(2.0*dr*dr*i);
+
         }
     }
-    double dduddz[N_R][N_Z];        //d^2ur/dz^2
     for (int i=1; i<N_R-1; i++)
     {
         for (int j=1; j<N_Z-1; j++)
         {
             dduddz[i][j]=ddz(durdz,i,j); //(durdz[i][j]-durdz[i-1][j])/dz;
-        }
-    }
-    double durdr[N_R][N_Z];  //dur/dr
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
-            durdr[i][j]=ddr(u_r_prev, i,j); //(u_r_prev[i][j]-u_r_prev[i-1][j])/dr;
-        }
-    }
-    double drurdr[N_R][N_Z];  // d(r*ur)/dr
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
-
-            drurdr[i][j]=(dr*(i+1)*u_r_prev[i+1][j]-dr*(i-1)*u_r_prev[i-1][j])/(2.0*dr*dr*i);
-        }
-    }
-    double ddruddr[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
             ddruddr[i][j]=ddr(drurdr,i,j); //(drurdr[i][j]-drurdr[i-1][j])/dr;
+
         }
     }
     for (int i=1; i<N_R-1; i++)
@@ -695,37 +877,30 @@ void sweep()
      * ==============================================================================*/
 
     double duzdr[N_R][N_Z];  //dur/dr
-    for (int i=1; i<N_R-1; i++)
+    double duzdz[N_R][N_Z];
+    double dduzddr[N_R][N_Z];
+    double dduzddz[N_R][N_Z];
+
+
+    for (int i=0; i<N_R; i++)
     {
-        for (int j=1; j<N_Z-1; j++)
+        for (int j=0; j<N_Z; j++)
         {
             duzdr[i][j]=ddr(u_z_prev,i,j); //(u_z_prev[i][j]-u_z_prev[i-1][j])/dr;
-        }
-    }
-    double duzdz[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
             duzdz[i][j]=ddz(u_z_prev,i,j); //(u_z_prev[i][j]-u_z_prev[i-1][j])/dz;
+
         }
     }
-    double dduzddr[N_R][N_Z];
-    for (int i=1; i<N_R-1; i++)
-    {
-        for (int j=1; j<N_Z-1; j++)
-        {
-            dduzddr[i][j]=(dr*(i+1)*duzdr[i+1][j]-dr*(i-1)*duzdr[i-1][j])/(2.0*dr);
-        }
-    }
-    double dduzddz[N_R][N_Z];
     for (int i=1; i<N_R-1; i++)
     {
         for (int j=1; j<N_Z-1; j++)
         {
             dduzddz[i][j]=ddz(duzdz,i,j); //(duzdz[i][j]-duzdz[i-1][j])/dz;
+
+            dduzddr[i][j]=(dr*(i+1)*duzdr[i+1][j]-dr*(i-1)*duzdr[i-1][j])/(2.0*dr);
         }
     }
+
     for (int i=1; i<N_R-1; i++)
     {
         for (int j=1; j<N_Z-1; j++)
@@ -745,7 +920,7 @@ void sweep()
 
     }
 
-
+/*
     get_div_prev();
 
     get_div_0();

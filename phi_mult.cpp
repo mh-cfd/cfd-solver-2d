@@ -463,7 +463,7 @@ double jacobi(double p[N_R][N_Z], double rhs[N_R][N_Z], int itn)
             //p[i][j]=0;
 
 
-
+            p_new[i][j]=p[i][j];
             p[i][j]=-(rhs[i][j]-(b_p*p[i+1][j]+b_m*p[i-1][j]+c_p*p[i][j+1]+c_m*p[i][j-1]))
                               /a;
 
@@ -478,15 +478,15 @@ double jacobi(double p[N_R][N_Z], double rhs[N_R][N_Z], int itn)
                      /(-2.0/(dz*dz)-2.0/(dr*dr));*/
         }
 
- /*   for (i=1; i<N_R-1; i++)
+    for (i=1; i<N_R-1; i++)
         for (j=1; j<N_Z-1; j++)
         {
             //p[i][j]=0;
  res+=fabs(p[i][j]-p_new[i][j]);
- p[i][j]=p[i][j]*0.8+0.2*p_new[i][j];
+// p[i][j]=p[i][j]*0.8+0.2*p_new[i][j];
 
         }
-*/
+
     //res/=(N_R*N_Z);
     printf("res=%f \n",res);
 }
